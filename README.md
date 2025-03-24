@@ -32,16 +32,14 @@ This project is a simple parser and lexer written in C. It is designed to tokeni
     cd your-repo-name
     ```
 
-2. **Compile the project:**
+2. ** Use Makefile:**
     ```sh
-    gcc -o parser main.c lexer/lexer.c utils/utils.c parser/parser.c
+    make or mingw-32 make
     ```
-
-3. **(Optional) Use Makefile:**
-    ```sh
-    (make) || (mingw-32 make)
+   You can also use:
+   ```
+   make clean or mingw-32 make clean
     ```
-
 ## Usage Instructions
 
 ### Running the Project
@@ -60,21 +58,11 @@ This project is a simple parser and lexer written in C. It is designed to tokeni
 ### Environment Variables or Configurations
 No specific environment variables or configurations are needed for this project.
 
-###Project Structure
+### Project Structure
 
-compiler-for-atomc/
-├── lexer/
-│   └── lexer.c
-├── parser/
-│   └── [parser.c](http://_vscodecontentref_/0)
-├── utils/
-│   └── utils.c
-├── examples/
-│   └── test.c
-├── [main.c](http://_vscodecontentref_/1)
-├── Makefile
-└── README.md
+![image](https://github.com/user-attachments/assets/e4c9a01c-232c-41a3-bffd-4b5e69999701)
 
+For the sake of testing: diff.py -> used to spot differnces in various output files, just change teh variables file1 and file2 to your preferences
 
 ### Configuration & Customization
 Modifying Settings
