@@ -28,8 +28,8 @@ This project is a simple parser and lexer written in C. It is designed to tokeni
 
 1. **Clone the repository:**
     ```sh
-    git clone https://github.com/yourusername/your-repo-name.git
-    cd your-repo-name
+    git clone https://github.com/BerindeiuSergiu/compiler-for-atomc.git
+    cd compiler-for-atomc
     ```
 
 2. ** Use Makefile:**
