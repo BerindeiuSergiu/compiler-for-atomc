@@ -1,0 +1,56 @@
+deci pch tot timpul este caracterul curent
+
+parcurgerea se face caracter cu caracter iar *pch tot timpul arata spre ->
+
+ana are mere -> printf(pch) -> na are mere -> pc == 'n' !!!!
+
+
+unit: ( structDef | fnDef | varDef )* END
+structDef: STRUCT ID LACC varDef* RACC SEMICOLON
+varDef: typeBase ID arrayDecl? SEMICOLON
+typeBase: TYPE_INT | TYPE_DOUBLE | TYPE_CHAR | STRUCT ID
+arrayDecl: LBRACKET INT? RBRACKET
+fnDef: ( typeBase | VOID ) ID
+LPAR ( fnParam ( COMMA fnParam )* )? RPAR
+stmCompound
+fnParam: typeBase ID arrayDecl?
+stm: stmCompound
+| IF LPAR expr RPAR stm ( ELSE stm )?
+| WHILE LPAR expr RPAR stm
+| RETURN expr? SEMICOLON
+| expr? SEMICOLON
+stmCompound: LACC ( varDef | stm )* RACC
+expr: exprAssign
+exprAssign: exprUnary ASSIGN exprAssign | exprOr
+
+exprOr: exprAnd exprOrPrim
+exprOrPrim : OR exprAnd exprOrPrim
+
+exprAnd: exprEq exprAndPrim
+exprAndPrim: AND exprEq exprAndPrim
+
+exprEq: exprRel exprEqPrim
+exprEqPrim: ( EQUAL | NOTEQ ) exprRel exprEqPrim
+
+exprRel: exprAdd exprRelPrim
+exprRelPrim: ( LESS | LESSEQ | GREATER | GREATEREQ ) exprAdd exprRelPrim
+
+exprAdd: exprMul exprAddPrim
+exprAddPrim: ( ADD | SUB ) exprMul exprAddPrim
+
+exprMul: exprCast exprMulPrim
+exprMulPrim: ( MUL | DIV ) exprCast exprMulPrim
+
+exprCast: LPAR typeBase arrayDecl? RPAR exprCast | exprUnary
+exprUnary: ( SUB | NOT ) exprUnary | exprPostfix
+
+exprPostfix: exprPrimary exprPostFixPrim
+exprPostFixPrim: exprPrimary (DOT ID exprPostFixPrim | LBRACKET expr RBRACKET exprPostFixPrim)
+
+exprPrimary: ID ( LPAR ( expr ( COMMA expr )* )? RPAR )?
+| INT | DOUBLE | CHAR | STRING | LPAR expr RPAR
+
+
+
+
+
