@@ -32,7 +32,7 @@ This project is a simple parser and lexer written in C. It is designed to tokeni
     cd compiler-for-atomc
     ```
 
-2. ** Use Makefile:**
+2. ** Use Makefile: **
     ```sh
     make or mingw-32 make
     ```
@@ -62,7 +62,7 @@ No specific environment variables or configurations are needed for this project.
 
 ![image](https://github.com/user-attachments/assets/e4c9a01c-232c-41a3-bffd-4b5e69999701)
 
-For the sake of testing: diff.py -> used to spot differnces in various output files, just change teh variables file1 and file2 to your preferences
+For the sake of testing: diff.py -> used to spot differnces in various output files, just change the variables file1 and file2 to your preferences
 
 ### Configuration & Customization
 Modifying Settings
