@@ -54,3 +54,8 @@ exprPrimary: ID ( LPAR ( expr ( COMMA expr )* )? RPAR )?
 
 
 
+
+exprMul: exprMul ( MUL | DIV ) exprCast | exprCast
+
+exprMul: exprCast exprMulPrim
+exprMulPrim: (MUL | Div) exprCast exprMulPrim
