@@ -8,7 +8,7 @@ CFLAGS = -Wall -I./utils -I./lexer -I./parser
 SRCS = main.c ./utils/utils.c ./lexer/lexer.c ./parser/parser.c
 
 # creating object files
-OBJS = main.o utils.o lexer.o parser.o
+OBJS = main.o utils.o lexer.o parser.o ad.o vm.o
 
 # name for executable
 EXEC = run
@@ -35,6 +35,12 @@ lexer.o: ./lexer/lexer.c
 # rule for parser.c
 parser.o: ./parser/parser.c
 	$(CC) $(CFLAGS) -c ./parser/parser.c
+
+ad.o: ./ad-vm/ad.c
+	$(CC) $(CFLAGS) -c ./ad-vm/ad.c
+
+vm.o: ./ad-vm/vm.c
+	$(CC) $(CFLAGS) -c ./ad-vm/vm.c
 
 # cleanup
 clean:
