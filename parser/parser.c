@@ -314,12 +314,12 @@ bool stm()
 	}
 	iTk = start; //aici am adaugat
 	if (expr())
-		{
-		}
+	{
 		if (consume(SEMICOLON))
 		{
 			return true;
-		}
+		}else tkerr("lipseste ; la final");
+	}
 	iTk = start;
 	return false;
 }
