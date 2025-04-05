@@ -2,13 +2,13 @@
 CC = gcc
 
 # flags to be added for the compiler
-CFLAGS = -Wall -I./utils -I./lexer -I./parser
+CFLAGS = -Wall -I./utils -I./lexer -I./parser -I./ad -I./vm
 
 # source files
-SRCS = main.c ./utils/utils.c ./lexer/lexer.c ./parser/parser.c
+SRCS = main.c ./utils/utils.c ./lexer/lexer.c ./parser/parser.c ./ad/ad.c ./vm/vm.c
 
 # creating object files
-OBJS = main.o utils.o lexer.o parser.o
+OBJS = main.o utils.o lexer.o parser.o ad.o vm.o
 
 # name for executable
 EXEC = run
@@ -35,6 +35,13 @@ lexer.o: ./lexer/lexer.c
 # rule for parser.c
 parser.o: ./parser/parser.c
 	$(CC) $(CFLAGS) -c ./parser/parser.c
+
+ad.o: ./ad/ad.c
+	$(CC) $(CFLAGS) -c ./ad/ad.c
+
+vm.o: ./vm/vm.c
+	$(CC) $(CFLAGS) -c ./vm/vm.c
+
 
 # cleanup
 clean:

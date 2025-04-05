@@ -5,9 +5,13 @@
 
 #include "parser.h"
 #include "utils.h"
+#include "ad.h"
 
 Token *iTk;		   // the iterator in the tokens list
 Token *consumedTk; // the last consumed token
+
+Symbol *owner; // owner-ul simbolului curent (NULL pentru simboluri globale -> init cu NULL)
+
 
 void tkerr(const char *fmt, ...)
 {
@@ -60,28 +64,39 @@ bool consume(int code)
 }
 
 // typeBase: TYPE_INT | TYPE_DOUBLE | TYPE_CHAR | STRUCT ID
-bool typeBase()
-{
-	if (consume(TYPE_INT))
-	{
-		return true;
-	}
-	if (consume(TYPE_DOUBLE))
-	{
-		return true;
-	}
-	if (consume(TYPE_CHAR))
-	{
-		return true;
-	}
-	if (consume(STRUCT))
-	{
-		if (consume(ID))
-		{
-			return true;
-		}else tkerr("eroare de sintaxa, lipseste numele structurii dupa structy\n");
-	}
-	return false;
+bool typeBase(Type *t) {
+    printf("# typeBase\n");
+    Token *start = iTk;
+    t->n = -1; // initializare dimensiune cu -1
+
+    if (consume(TYPE_INT)) {
+        t->tb = TB_INT; // setam tipul de baza ca INT
+        return true;
+    }
+    if (consume(TYPE_DOUBLE)) {
+        t->tb = TB_DOUBLE; // setam tipul de baza ca DOUBLE
+        return true;
+    }
+    if (consume(TYPE_CHAR)) {
+        t->tb = TB_CHAR; // setam tipul de baza ca CHAR
+        return true;
+    }
+    if (consume(STRUCT)) {
+        Token *tkName = consumedTk;// se salveaza numele structurii
+        if (consume(ID)) {
+            t->tb = TB_STRUCT; // setam tipul de baza ca STRUCT
+            t->s = findSymbol(tkName->text); //cautam structura in tabela de simboluri
+            if (!t->s) {
+				///// daca structura nu este definita aruncam eroare /////
+                tkerr("structura nedefinita: %s", tkName->text); 
+            }
+            return true;
+        } else {
+            tkerr("eroare de sintaxa, lipseste numele structurii dupa struct\n");
+        }
+    }
+    iTk = start;
+    return false;
 }
 
 // unit: ( structDef | fnDef | varDef )* END
@@ -116,8 +131,18 @@ bool structDef()
 	Token *start = iTk;
 	if (consume(STRUCT))
 	{
+		Token *tkName = consumedTk;
 		if (consume(ID))
 		{
+			Symbol *s = findSymbolInDomain(symTable, tkName->text);
+            if (s)
+                tkerr("symbol redefinition: %s", tkName->text);
+            s = addSymbolToDomain(symTable, newSymbol(tkName->text, SK_STRUCT));
+            s->type.tb = TB_STRUCT;
+            s->type.s = s;
+            s->type.n = -1;
+            pushDomain();
+            owner = s;
 			if (consume(LACC))
 			{
 				for (;;)
@@ -132,42 +157,72 @@ bool structDef()
 				}
 				if (consume(RACC))
 				{
+					owner = NULL;
+                    dropDomain();
 					if (consume(SEMICOLON))
 					{
 						return true;
 					}else tkerr("lipseste ; la final\n");
 				}else tkerr("eroare de sintaxa, lipseste }\n");
 			}
-		}else tkerr("lipseste ID dupa struct\n");
+		}else tkerr("lipseste numele var dupa struct\n");
 	}
 	iTk = start;
 	return false;
 }
 
 // varDef: typeBase ID arrayDecl? SEMICOLON
-bool varDef()
-{
-	printf("# varDef\n");
-	Token *start = iTk;
-	if (typeBase())
-	{
-		if (consume(ID))
-		{
-			if (arrayDecl())
-			{
-			}
-			if (consume(SEMICOLON))
-			{
-				return true;
-			}else tkerr("lipseste ; la final\n");
-		}else tkerr("lipseste ID dupa declaratia tipului de date\n");
-	}
-	iTk = start;
-	return false;
+bool varDef() {
+    printf("# varDef\n");
+    Token *start = iTk;
+    Type t; // timpul variabilei
+
+    if (typeBase(&t)) { 
+        Token *tkName = consumedTk; // se salveaza numele variabilei
+        if (consume(ID)) { 
+            if (arrayDecl(&t)) { // se proceseaza un array
+                if (t.n == 0) {
+                    tkerr("a vector variable must have a specified dimension");
+                }
+            }
+            if (consume(SEMICOLON)) {
+                Symbol *var = findSymbolInDomain(symTable, tkName->text);
+                if (var) {
+                    tkerr("symbol redefinition: %s", tkName->text);
+                }
+                var = newSymbol(tkName->text, SK_VAR);
+                var->type = t;
+                var->owner = owner;
+                addSymbolToDomain(symTable, var);
+
+                if (owner) { // verificam daca variabila aparine unei functii sau unei structuri
+                    switch (owner->kind) {
+                        case SK_FN: // variabilă locală într-o funcție
+                            var->varIdx = symbolsLen(owner->fn.locals);
+                            addSymbolToList(&owner->fn.locals, dupSymbol(var));
+                            break;
+                        case SK_STRUCT: // membru al unei structuri
+                            var->varIdx = typeSize(&owner->type);
+                            addSymbolToList(&owner->structMembers, dupSymbol(var));
+                            break;
+                    }
+                } else { // cazul in care variabila este locala
+                    var->varMem = safeAlloc(typeSize(&t));
+                }
+                return true;
+            } else {
+                tkerr("lipseste ; la final\n");
+            }
+        } else {
+            tkerr("lipseste numele variabilei dupa declaratia tipului de date\n");
+        }
+    }
+    iTk = start;
+    return false;
 }
 
 // arrayDecl: LBRACKET INT? RBRACKET
-bool arrayDecl()
+bool arrayDecl(Type *t)
 {
 	printf("# arrayDecl\n");
 	Token *start = iTk;
@@ -175,6 +230,10 @@ bool arrayDecl()
 	{
 		if (consume(INT))
 		{
+			Token *tkSize = consumedTk;
+			t->n = tkSize->i; // pentru cazul in care se specifica dimensiunea array-ului: int v[10]
+		}else{
+			t->n = 0; //pentru cazul in care nu se specifica dimensiunea array-ului: int v[]
 		}
 		if (consume(RBRACKET))
 		{
@@ -645,7 +704,7 @@ bool exprUnary()
 		if (exprUnary())
 		{
 			return true;
-		}else tkerr("expresie invalida, lipseste expresie duma - / !\n");
+		}else tkerr("expresie invalida, lipseste expresie dupa - / !\n");
 	}
 	if (exprPostfix())
 	{
@@ -699,7 +758,7 @@ bool exprPostFixPrim()
 			{
 				return true;
 			}
-		}else tkerr("lipseste un identificator dupa .\n");
+		}else tkerr("lipseste un nume variabila dupa .\n");
 	}
 
 	iTk = start;
@@ -765,7 +824,7 @@ bool exprPrimary()
 			{
 				return true;
 			}else tkerr("lipseste ) dupa expresie\n");
-		}else tkerr("eroare de sintaxa, lipseste expresie dupa )\n");
+		}else tkerr("eroare de sintaxa, lipseste expresie dupa (\n");
 	}
 	iTk = start;
 	return false;

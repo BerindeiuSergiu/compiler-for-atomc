@@ -5,7 +5,7 @@ bool unit();
 bool structDef();
 bool varDef();
 bool typeBase();
-bool arrayDecl();
+bool arrayDecl(Type *t);
 bool fnDef();
 bool fnParam();
 bool stm();
